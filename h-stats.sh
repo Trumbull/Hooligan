@@ -72,7 +72,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
 #cat /run/hive/gpu-stats.json | tail -1 | jq -r ".temp | .[]"
 #	n=`cat $LOG_NAME | tail -n 20 | grep -n "MH/s" $LOG_NAME | awk '{print $1}'`
 #	nt=`echo $n | awk '{ printf("%.f",$1) }'`
-	temp=$get_nvidia_cards_temp()
+	temp=$(get_nvidia_cards_temp)
 	fan=`cat $gpu_stats_json | jq -c ".fan"`  
 	hs=129
 	hs_units="Mhs"
