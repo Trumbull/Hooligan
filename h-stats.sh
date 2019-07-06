@@ -78,12 +78,12 @@ khs=0
     ac=10
 	rj=10	
 	ver=7.0
-	stats=$(jq -n \
+	stats=$(jq -nc \
     --arg algo "$algo" \
     --argjson hs "$hs" \
     --arg hs_units "Mhs" \
-    --arg fan "$fan" \
-    --arg temp "$temp" \
+    --argjson fan "$fan" \
+    --argjson temp "$temp" \
     --arg bus_numbers "129" \
     --arg ver "$ver" \
     '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:'$uptime', ar: ['$ac', '$rj'], $algo, $ver}')
