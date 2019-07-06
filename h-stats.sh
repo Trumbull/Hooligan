@@ -86,7 +86,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
     --arg hs_units "Mhs" \
     --argjson fan "$fan" \
     --argjson temp "$temp" \
-    --argjson bus_numbers "`129`" \
+    --argjson bus_numbers "129" \
     --arg ver "$ver" \
     '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:$uptime, ar: ['$ac', '$rj'], $algo, $ver}')
 	khs=130
