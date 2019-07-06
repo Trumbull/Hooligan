@@ -84,7 +84,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
 	stats=$(jq -n \
     --arg algo "$algo" \
     --argjson hs "$hs" \
-    --argj hs_units "Mhs" \
+    --arg hs_units "Mhs" \
     --argjson fan "$fan" \
     --arg temp "$temp" \
     --arg bus_numbers "129" \
