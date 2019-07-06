@@ -72,7 +72,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
 #	nt=`echo $n | awk '{ printf("%.f",$1) }'`
 #	temp=`cat $gpu_stats_json | jq -c ".temp"` 
         temp = $(get_nvidia_cards_temp)
-	fan=`cat $gpu_stats_json | jq -c ".fan"`  
+	fan=$(get_nvidia_cards_fan)	
 	hs=129
 	hs_units="Mhs"
 	algo="x13"
@@ -90,7 +90,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
     --arg bus_numbers "129" \
     --arg ver "$ver" \
     '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:'$uptime', ar: ['$ac', '$rj'], $algo, $ver}')
-	khs=130
+	mhs=130
 
 # debug output
 #echo ac:  $ac
@@ -98,4 +98,4 @@ echo fan:   $fan
 #echo hs:    $hs
 #echo nt:  $nt
 echo stats: $stats
-#echo khs:   $khs
+#echo mhs:   $mhs
