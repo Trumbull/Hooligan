@@ -1,8 +1,3 @@
-gpu_stats=`timeout -s9 60 gpu-stats`
-gpu_stats_json="/run/hive/gpu-stats.json"
-gpu_detect_json="/run/hive/gpu-detect.json"
-nvidia_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
-
 get_cards_hashes(){
 	hs=''	
 
@@ -40,6 +35,10 @@ get_nvidia_cards_fan(){
 # MAIN script body
 #######################
 . /hive/miners/custom/bfgminer/h-manifest.conf
+gpu_stats=`timeout -s9 60 gpu-stats`
+gpu_stats_json="/run/hive/gpu-stats.json"
+gpu_detect_json="/run/hive/gpu-detect.json"
+nvidia_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
 LOG_NAME="$MINER_LOG_BASENAME.log"
 
 khs=0
