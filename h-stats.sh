@@ -90,7 +90,7 @@ khs=0
     --arg bus_numbers "129" \
     --arg ver "$ver" \
     '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:'$uptime', ar: ['$ac', '$rj'], $algo, $ver}')
-	mhs=130
+	khs=130
 
 # debug output
 #echo ac:  $ac
@@ -98,4 +98,4 @@ echo fan:   $fan
 #echo hs:    $hs
 #echo nt:  $nt
 echo stats: $stats
-#echo mhs:   $mhs
+#echo khs:   $khs
