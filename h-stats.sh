@@ -1,7 +1,7 @@
-
 #######################
 # Functions
 ####################### cat /run/hive/gpu-stats.json | jq -c ".temp
+gpu_stats=`timeout -s9 60 gpu-stats`
 gpu_stats_json="/run/hive/gpu-stats.json"
 nvidia_indexes_array=`echo /run/hive/gpu-stats.json | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
 
@@ -51,9 +51,9 @@ khs=0
 	GPU_COUNT_AMD=`gpu-detect AMD`
 
 #GPU stats
-gpu_detect_json=`gpu-detect listjson`
-amd_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "amd") | .key ]'`
-gpu_stats=`timeout -s9 60 gpu-stats`
+#gpu_detect_json=`gpu-detect listjson`
+#amd_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "amd") | .key ]'`
+#gpu_stats=`timeout -s9 60 gpu-stats`
 
 # Calc log freshness
 
