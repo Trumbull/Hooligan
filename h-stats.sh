@@ -1,31 +1,17 @@
 #!/usr/bin/env bash
 
-cd `dirname $0`
+#######################
+# Functions
+#######################
 
-. /hive/miners/custom/$CUSTOM_MINER/h-manifest.conf
+
 get_cards_hashes(){
-	hs=''	
-
-	#let hs=$h/$GPU_COUNT_AMD
-		for (( i=0; i < ${GPU_COUNT_AMD}; i++ )); do
-		local s=`cat $LOG_NAME| tail -n 20 |grep -i "hash"| tail -n 1 | cut -c 11-14 | awk '{printf $1}'`
-		local t=0
-		let t=$s/$GPU_COUNT_AMD
-		hs[$i]=$t
+        # hs is global
+        hs=''
+	for (( i=0; i < ${GPU_COUNT_NVIDIA}; i++ )); do
+		local MHS=`cat $LOG_NAME | grep "Device \#${i}-${i} speed:" | tail -n 1 | awk '{ printf $7 }'`
+		hs[$i]=`echo $MHS`
 	done
-}
-
-get_total_hashes(){
-	local Total=`cat $LOG_NAME| tail -n 20 |grep -i "hash"| tail -n 1 | cut -c 11-14 | awk '{printf "%.0f\n",$1*1000}'`
-	echo $Total
-}
-
-get_amd_cards_temp(){
-	echo $(jq -c "[.temp$amd_indexes_array]" <<< $gpu_stats)
-}
-
-get_amd_cards_fan(){
-	echo $(jq -c "[.fan$amd_indexes_array]" <<< $gpu_stats)
 }
 
 get_nvidia_cards_temp(){
@@ -36,68 +22,89 @@ get_nvidia_cards_fan(){
         echo $(jq -c "[.fan$nvidia_indexes_array]" <<< $gpu_stats)
 }
 
+get_miner_uptime(){
+        local tmp=$(cat $DATE | head -n 1 | awk '{print}')
+        local start=$(date +%s -d "$tmp")
+        local now=$(date +%s)
+        echo $((now - start))
+}
+
+get_total_hashes(){
+        # khs is global
+ 	 local speed=`cat $LOG_NAME | grep -a "speed" | tail -n 1`
+	 local rate=`echo $speed | awk '{printf $8"\n"}'`
+	 local Total=0
+	 case $rate in
+        	 H/s)
+                	 Total=`echo $speed | awk '{printf $7/1000}'`
+         ;;
+         	kH/s)
+                	 Total=`echo $speed | awk '{printf("%.f\n", $7)}'`
+         ;;
+         	MH/s)
+                	 Total=`echo $speed | awk '{printf("%.f\n", $7*1000)}'`
+         ;;
+         *)
+                 	 Total=0
+         ;;
+	 esac
+	 echo $Total
+}
+
+get_log_time_diff(){
+        local getLastLogTime=`tail -n 100 $LOG_NAME | tail -n 1 | awk {'print $1'} | cut -b 11-18`
+        local logTime=`date --date="$getLastLogTime" +%s`
+        local curTime=`date +%s`
+        echo `expr $curTime - $logTime`
+}
+
 #######################
 # MAIN script body
 #######################
-. /hive/miners/custom/bfgminer/h-manifest.conf
-gpu_stats=`timeout -s9 60 gpu-stats`
-gpu_stats_json="/run/hive/gpu-stats.json"
-gpu_detect_json="/run/hive/gpu-detect.json"
-nvidia_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
-LOG_NAME="$MINER_LOG_BASENAME.log"
 
-khs=0
+. /hive/custom/$CUSTOM_MINER/h-manifest.conf
+local LOG_NAME="$CUSTOM_LOG_BASENAME.log"
+local DATE="$CUSTOM_LOG_BASENAME.date.log"
+
+[[ -z $GPU_COUNT_NVIDIA ]] &&
+        GPU_COUNT_NVIDIA=`gpu-detect NVIDIA`
 
 
-[[ -z $GPU_COUNT_AMD ]] &&
-	GPU_COUNT_AMD=`gpu-detect AMD`
-
-#GPU stats
-#gpu_detect_json=`gpu-detect listjson`
-#amd_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "amd") | .key ]'`
-#gpu_stats=`timeout -s9 60 gpu-stats`
 
 # Calc log freshness
+local diffTime=$(get_log_time_diff)
+local maxDelay=120
 
+# echo $diffTime
 
-#hs=$(get_cards_hashes)
-#temp=$(get_nvidia_cards_temp)	# cards temp
-#fan=$(get_nvidia_cards_fan)	# cards fan
-#hs_units='khs'				    # cards temp
-#khs=`echo $stats_raw | jq 'MH/s' | awk '{print $1*1000}'`
-#hs=`echo $stats_raw | jq -r '.stats.hs'`
-#algo='sha224'	 # algo
+# If log is fresh the calc miner stats or set to null if not
+        local hs=
+        get_cards_hashes                                        # hashes array
+        local hs_units='hs'                             # hashes utits
+        local temp=$(get_nvidia_cards_temp)     # cards temp
+        local fan=$(get_nvidia_cards_fan)               # cards fan
+        local uptime=$(get_miner_uptime)        # miner uptime
+        local algo=$(cat $LOG_NAME | head -n 20 | grep -a "add" | awk '{printf $4"\n"}')                 # algo
 
-#stats_raw=`cat /var/log/miner/HooliganMiner/HooliganMiner.log | sed 's/\"\[/\[/' | sed 's/\]\"/\]/'`
-#cat /run/hive/gpu-stats.json | tail -1 | jq -r ".temp | .[]"
-#	n=`cat $LOG_NAME | tail -n 20 | grep -n "MH/s" $LOG_NAME | awk '{print $1}'`
-#	nt=`echo $n | awk '{ printf("%.f",$1) }'`
-#	temp=`cat $gpu_stats_json | jq -c ".temp"` 
-        temp=$(get_nvidia_cards_temp)
-	fan=$(get_nvidia_cards_fan)	
-	hs=129
-	hs_units="Mhs"
-	algo="x13"
-	uptime=20
-#	ac=`cat $LOG_NAME| tail -n 20 |grep -i "hash"| tail -n 1 | cut -c 37-39 | awk '{printf $1}'`
-    ac=10
-	rj=10	
-	ver=7.0
-	stats=$(jq -n \
-    --arg algo "$algo" \
-    --argjson hs "$hs" \
-    --arg hs_units "Mhs" \
-    --argjson fan "$fan" \
-    --argjson temp "$temp" \
-    --arg bus_numbers "129" \
-    --arg ver "$ver" \
-    '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:'$uptime', ar: ['$ac', '$rj'], $algo, $ver}')
-	khs=130
+        # A/R shares by pool
+        local ac=`cat $LOG_NAME | grep -c "accepted"`
+        local rj=`cat $LOG_NAME | grep -c "rejected"`
+
+        # make JSON
+        stats=$(jq -nc \
+                                --argjson hs "`echo ${hs[@]} | tr " " "\n" | jq -cs '.'`" \
+                                --arg hs_units "$hs_units" \
+                                --argjson temp "$temp" \
+                                --argjson fan "$fan" \
+                                --arg uptime "$uptime" \
+                                --arg ac "$ac" --arg rj "$rj" \
+                                --arg algo "$algo" \
+                                '{$hs, $hs_units, $temp, $fan, $uptime, ar: [$ac, $rj], $algo}')
+        # total hashrate in khs
+        khs=$(get_total_hashes)
 
 # debug output
-#echo ac:  $ac
-echo fan:   $fan
-#echo hs:    $hs
-#echo nt:  $nt
-echo stats: $stats
+##echo temp:  $temp
+##echo fan:   $fan
+#echo stats: $stats
 #echo khs:   $khs
