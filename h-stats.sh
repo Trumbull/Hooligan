@@ -1,9 +1,9 @@
 
 #######################
 # Functions
-#######################
+####################### cat /run/hive/gpu-stats.json | jq -c ".temp
 gpu_stats_json="/run/hive/gpu-stats.json"
-nvidia_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
+nvidia_indexes_array=`echo /run/hive/gpu-stats.json | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
 
 get_cards_hashes(){
 	hs=''	
@@ -88,7 +88,7 @@ gpu_stats=`timeout -s9 60 gpu-stats`
     --argjson temp "$temp" \
     --arg bus_numbers "129" \
     --arg ver "$ver" \
-    '{$hs, $hs_units, $temp, $fan, $bus_numbers,uptime:'$uptime', ar: ['$ac', '$rj'], $algo, $ver}')
+    '{$hs, $hs_units, $temp, $fan, $bus_numbers, uptime:`$uptime`, ar: ['$ac', '$rj'], $algo, $ver}')
 	khs=130
 
 # debug output
