@@ -1,6 +1,3 @@
-#######################
-# Functions
-####################### 
 gpu_stats=`timeout -s9 60 gpu-stats`
 gpu_stats_json="/run/hive/gpu-stats.json"
 nvidia_indexes_array=`echo /run/hive/gpu-stats.json | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
