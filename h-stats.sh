@@ -1,7 +1,6 @@
 gpu_stats=`timeout -s9 60 gpu-stats`
 gpu_stats_json="/run/hive/gpu-stats.json"
-nvidia_indexes_query='[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'
-nvidia_indexes_array=`echo "$gpu_detect_json" | jq -r "$nvidia_indexes_query| .[]"`
+nvidia_indexes_array=`echo "$gpu_detect_json" | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]
 ###nvidia_indexes_array=`echo /run/hive/gpu-stats.json | jq -c '[ . | to_entries[] | select(.value.brand == "nvidia") | .key ]'`
 
 get_cards_hashes(){
